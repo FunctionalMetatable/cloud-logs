@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="initial-scale=1.0" />
+        <style>
+            input {
+                outline: none;
+            }
+
+            .log * {
+                padding: 3px;
+            }
+        </style>
+        <script src="https://unpkg.com/vue@next"></script>
+        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+     </head>
+    <body>
+        <div id="app" class="m-3">
+            <div class="flex justify-center flex-wrap">
+                <input type="number" class="p-4 border-gray-900 border-2 rounded-xl shadow-md" placeholder="Project id" v-model="project" />
+                <button :class="`p-4 bg-green-500 ml-2 ${extra}`" @click="changeProject()">Go</button>
+            </div>
+            <div class="grid-container">
+                <div class="grid grid-cols-5 gap-5 m-3 shadow-md log w-full border-gray-500 border-2 mr-3" v-for="log of logs">
+                    <div class="col">
+                        <a :href="`https://scratch.mit.edu/users/${log.user}`" class="text-blue-400 hover:text-blue-900">
+                            {{ log.user }}
+                        </a>
+                    </div>
+                    <div class="col">
+                        {{ log.name }}
+                    </div>
+                    <div class="col">
+                        {{ log.method }}
+                    </div>
+                    <div class="col">
+                        {{ log.value }}
+                    </div>
+                    <div class="col">
+                        {{ (new Date(log.timestamp)).toLocaleString() }}
+                    </div>
+                </div>
+                <button class="p-3 bg-green-500" @click="loadMore()">Load more</button>
+            </div>
+        </div>
+        <script>
+            Vue.createApp({
+                data() {
+                    return {
+                        logs: [],
+                        project: 0,
+                        offset: 0,
+                        extra: ""
+                    }
+                },
+                mounted() {
+                    let searchParams = new URLSearchParams(window.location.search)
+                    if (searchParams.get('id')) this.changeProject(searchParams.get('id'))
+                },
+                methods: {
+                    async changeProject() {
+                        this.offset = 0
+                        let res = await fetch(`https://api-9gr.vercel.app/scratch/cloud-logs/${this.project}`)
+                        let json = await res.json()
+                        this.logs = json
+                    },
+                    async loadMore() {
+                        this.offset += 20
+                        this.extra = 'cursor-wait'
+                        let res = await fetch(`https://api-9gr.vercel.app/scratch/cloud-logs/${this.project}/?offset=${this.offset}&limit=20`)
+                        let json = await res.json()
+                        this.logs = this.logs.concat(json)
+                        this.extra = ''
+                    }
+                }
+            }).mount('#app')
+        </script>
+    </body>
+</html>
