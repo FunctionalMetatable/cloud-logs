@@ -56,7 +56,10 @@
                 },
                 mounted() {
                     let searchParams = new URLSearchParams(window.location.search)
-                    if (searchParams.get('id')) this.changeProject(searchParams.get('id'))
+                    if (searchParams.get('id')) {
+                        this.project = searchParams.get('id')
+                        this.changeProject()
+                    }
                 },
                 methods: {
                     async changeProject() {
